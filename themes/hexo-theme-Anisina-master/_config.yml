@@ -3,18 +3,18 @@
 ## Source: https://github.com/hexojs/hexo/
 
 # Site
-title: Haojen # your blog title name
-subtitle:  
-author: Haojen Ma # 作者
-language: 
-timezone: 
+title: UZ青年
+subtitle: 分享、心得、总结、记录
+description: 陈建朋在 Github 上的个人博客
+author: chenjp
+language:
+timezone:
 
 # custom Site settings
 # more detail check out docs
-SEOTitle: Haojen's blog 
+SEOTitle: UZQN's blog 
 header-img: //o7bkkhiex.bkt.clouddn.com/lion-blur-bg.jpg
-email: HaojenMa@gmail.com
-description: "马浩珍在 Github 上的个人博客"
+email: chenjpok@163.com
 keyword: # seo key words
 
 favicon: # your favicon png
@@ -22,17 +22,17 @@ favicon: # your favicon png
 
 # URL
 ## If your site is put in a subdirectory, set url as 'http://yoursite.com/child' and root as '/child/'
-url: http://haojen.github.io
+url: http://123sky.github.io
 root: /
 permalink: :year/:month/:day/:title/
 permalink_defaults:
 
 # SNS settings
 # RSS:
-weibo_username: haojen
-zhihu_username: megahertz
-github_username: haojen
-twitter_username: ehazon
+weibo_username: 3048860577
+zhihu_username: ke-jing-ming-68
+github_username: 123sky
+twitter_username: 
 facebook_username:  
 linkedin_username:  
 
@@ -131,9 +131,9 @@ theme: Anisina
 # Deployment
 ## Docs: https://hexo.io/docs/deployment.html
 deploy:
-  type: 
-  repo: 
-  branch: 
+  type: git
+  repository: https://github.com/123sky/123sky.github.io.git
+  branch: master
 
 
 # img CDN path
