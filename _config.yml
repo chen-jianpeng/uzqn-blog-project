@@ -13,7 +13,8 @@ timezone:
 # custom Site settings
 # more detail check out docs
 SEOTitle: UZQN's blog 
-header-img: //o7bkkhiex.bkt.clouddn.com/lion-blur-bg.jpg
+header-img: img/avatar.jpg
+header-img-bg: img/avatar_bg.jpg
 email: chenjpok@163.com
 keyword: # seo key words
 
@@ -39,18 +40,9 @@ linkedin_username:
 # Build settings
 anchorjs: false                        # if you want to customize anchor. check out line:181 of `post.html`
 
-
-# Disqus settings 
-disqus_username: 
-
-# Duoshuo settings
-duoshuo_username:  # 你的多说帐号
-# Share component is depend on Comment so we can NOT use share only.
-duoshuo_share: true                     # set to false if you want to use Comment without Sharing
-
 # Use livere
-use_livere:
-
+use_livere: true
+livere_uid: MTAyMC8zMzE3Ny85NzM0
 # Analytics settings
 # Baidu Analytics
 ba_track_id:
@@ -60,7 +52,7 @@ ga_domain:
 
 # Sidebar settings
 sidebar-about-description: # 个人描述
-sidebar-avatar:     # use absolute URL
+sidebar-avatar: img/avatar.jpg    # use absolute URL
 
 
 # Featured Tags

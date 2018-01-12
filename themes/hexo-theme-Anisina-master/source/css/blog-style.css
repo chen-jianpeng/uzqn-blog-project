@@ -150,6 +150,10 @@ hr.small {
     border:4px white;
 }
 
+.code {
+    padding: 0 !important;
+}
+
 pre,
 .table-responsive {
     -webkit-overflow-scrolling: touch;
