@@ -17,7 +17,6 @@ header-img: img/avatar.jpg
 header-img-bg: img/avatar_bg.jpg
 email: chenjpok@163.com
 keyword: # seo key words
-
 favicon: # your favicon png
 # custom end
 
@@ -45,19 +44,19 @@ use_livere: true
 livere_uid: MTAyMC8zMzE3Ny85NzM0
 # Analytics settings
 # Baidu Analytics
-ba_track_id:
+ba_track_id: 59c42284529ceca5af7ac2f19589f9b6
 # Google Analytics
 ga_track_id:             # Format: UA-xxxxxx-xx
 ga_domain:
 
 # Sidebar settings
-sidebar-about-description: # 个人描述
+sidebar-about-description: 远传科技前端工程师 # 个人描述
 sidebar-avatar: img/avatar.jpg    # use absolute URL
 
 
 # Featured Tags
 featured-tags: true                     # whether or not using Feature-Tags
-featured-condition-size: 1              # A tag will be featured if the size of it is more than this condition value
+featured-condition-size: 0              # A tag will be featured if the size of it is more than this condition value
 
 # friends
 friends:  # 友链
