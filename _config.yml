@@ -117,6 +117,7 @@ markdown:
     - markdown-it-emoji
 
 # img CDN path
+cdn: 'header-off'
 cdn-url:  # 你的CDN地址
 
 # Qiniu imageView2 API

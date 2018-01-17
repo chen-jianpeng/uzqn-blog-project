@@ -8,7 +8,7 @@ layout: layout
 <img class="wechat-title-img"
      src="<%- config['cdn-url'] %> <%= page['wechat-share'] || page['header-img'] %> <%- config['cdn-url'] ? config['clip-content'] : '' %>">
 <% } else{ %>
-<% if (page["cdn"] === 'header-off'){ %>
+<% if (config["cdn"] === 'header-off'){ %>
 <img class="wechat-title-img" src="<%= page["header-img"] || config["post-default-img"] %>">
 <% } else { %>
 <img class="wechat-title-img"
@@ -16,7 +16,7 @@ layout: layout
 <% } %>
 <% } %>
 <style>
-    <% if (page["cdn"] === 'header-off'){%>
+    <% if (config["cdn"] === 'header-off'){%>
     header.intro-header {
         background-image: url('<%= page["header-img"] || config["post-default-img"]%>');
     }
