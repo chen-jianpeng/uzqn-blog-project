@@ -83,9 +83,9 @@ relative_link: false
 future: true
 highlight:
   enable: true
-  line_number: false
-  auto_detect: false
-  tab_replace:
+  line_number: true
+  auto_detect: true
+  tab_replace: false
 
 # Category & Tag
 default_category: uncategorized
