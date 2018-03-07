@@ -92,3 +92,40 @@ a() //2
 ## 对象
 
 - `property` `defineProperty`
+- `prototype` `__proto__` `constructor` `原型` `原型链`
+
+- 创建对象
+  - 工厂模式
+    弊端：无法解决对象识别问题（怎样知道一个对象的类型）
+    ```
+    function createPerson(name, age, job){
+      var o = {}
+      o.name = name
+      o.age = age
+      o.job = job
+      o.sayName = function(){
+        alert(this.name)
+      }
+      return o
+    }
+    var person1 = createPerson('xixi', 29, '工程师') 
+    var person2 = createPerson('lili', 29, '搬砖') 
+    ```
+  - 构造函数模式
+    优点：不用显式创建对象，属性赋值给this对象，没有return语句。
+    constructor指向Person
+    弊端：每个方法要在每个实例上重新创建（sayName方法）
+    ```
+    function Person(name, age, job){
+      this.name = name
+      this.age = age
+      this.job = job
+      this.sayName = function(){
+        alert(this.name)
+      }
+    }
+    var person1 = new Person('xixi', 29, '工程师') 
+    var person2 = new Person('lili', 29, '搬砖') 
+    ```
+  - 原型模式
+  - 组合使用构造函数模式和原型对象模式
