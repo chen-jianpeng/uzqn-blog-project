@@ -1,7 +1,7 @@
 ---
 title: css深入学习之padding
-date: 2018-03-02 09:44:26
-tags: css padding
+date: 2018-03-03 09:44:26
+tags: css
 header-img: "head.jpg"
 ---
 # css深入学习之padding
@@ -71,3 +71,5 @@ background-clip:content-box实现背景色只在内容区域现实
 
 <p data-height="265" data-theme-id="light" data-slug-hash="bLyMBO" data-default-tab="html,result" data-user="chenjp" data-embed-version="2" data-pen-title="padding与布局2" class="codepen">See the Pen <a href="https://codepen.io/chenjp/pen/bLyMBO/">padding与布局2</a> by chenjp (<a href="https://codepen.io/chenjp">@chenjp</a>) on <a href="https://codepen.io">CodePen</a>.</p>
 <script async src="https://static.codepen.io/assets/embed/ei.js"></script>
+
+以上内容来自张鑫旭老师在慕课网上的课程

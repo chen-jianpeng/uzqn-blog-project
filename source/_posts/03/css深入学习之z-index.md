@@ -1,7 +1,7 @@
 ---
 title: css深入学习之z-index
-date: 2018-03-02 09:44:26
-tags: css z-index
+date: 2018-03-04 09:44:26
+tags: css
 header-img: "head.jpg"
 ---
 # css深入学习之z-index
@@ -127,3 +127,4 @@ block的z-index为-1，找到他的第一个父级层叠上下文元素就是wra
 3. 组件层级计数器，通过js设置z-index。
 4. 通过设置z-index使元素可访问性隐藏
 
+以上内容来自张鑫旭老师在慕课网上的课程
