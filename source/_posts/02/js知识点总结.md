@@ -33,10 +33,6 @@ function log(){
 };
 ```
 
-## arguments，instanceof
-
-## 作用域链
-
 ## 数组方法
 
 - `instanceof`
@@ -54,20 +50,6 @@ function log(){
 - 字面量形式创建、`RegExp`构造函数创建
 - `g`全局匹配、`i`忽略大小写、`m`多行匹配
 - `exec`、`test`方法
-
-## 函数
-
-- 函数声明与函数表达式
-
-```
-a() //1
-var a = function(){ alert(2) }
-function a () { alert(1) }
-a() //2
-```
-
-- `arguments` 类数组对象
-- `this`引用的是函数执行的环境对象
 
 ## String方法
 
@@ -385,3 +367,133 @@ SubType.prototype.sayAge = function (){
   alert(this.age)
 }
 ```
+
+## 函数
+
+- 函数声明与函数表达式
+  函数声明提升
+```
+a() //1
+var a = function(){ alert(2) }
+function a () { alert(1) }
+a() //2
+```
+
+- `arguments` 类数组对象
+
+- 闭包：
+  - 有权访问另一个函数作用域中变量的函数。创建闭包的常见方式，就是在一个函数内部创建另一个函数。
+  - 创建函数时，会创建一个预先包含全局变量对象的作用域链，这个作用域链被保存在内部的[[scope]]属性中。
+  - 调用函数时，会创建一个执行环境，然后通过复制函数的[[scope]]属性中的对象，构建起执行环境的作用域链。
+  - 此后，又一个活动对象（如本地活动对象）被创建，并推入执行环境作用域链的前端。
+
+- 作用域链本质是一个指向变量对象的指针列表，他只引用，但不实际包含变量对象。
+
+- 按理说函数执行完毕之后，局部活动对象就会被销毁，内存中仅保留全局作用域，但闭包例外。
+
+createComparisonFunction函数返回之后，其执行环境作用域链销毁，但活动对象仍留在内存中，直到匿名函数被销毁。
+```
+function createComparisonFunction (propertyName){
+  return function(value1, value2){
+    var value1 = object1[propertyName]
+    var value2 = object2[propertyName]
+
+    if(value1 < value2){
+      return -1
+    }else if(value1 > value2){
+      return 1
+    }else{
+      return 0
+    }
+  }
+}
+// 创建函数
+var compare = createComparisonFunction("name")
+// 调用函数
+var result = compare({name:"lili"},{name:"haha"}) 
+// 销毁函数（释放内存）
+compare = null
+```
+
+- 闭包与变量
+下面这段代码，的每个函数都返回10。
+因为每个函数的作用域链中，都保存着createComparisonFunction()函数的活动对象，所以他们都引用了同一个i。
+解决办法就是把i传递给匿名函数，或者声明i时把var换成let。
+```
+function createFunction1(){
+  var result = []
+  for(var i=0;i<10;i++){
+    result[i] = function(){
+      return i
+    }
+  }
+  return result
+}
+
+function createFunction2(){
+  var result = []
+  for(var i=0;i<10;i++){
+    result[i] = function(i){
+      return i
+    }
+  }
+  return result
+}
+```
+
+- this
+  在不通过call、aplly改变this指向的前提下
+ - 在函数内部，时函数执行的环境对象
+ - 在匿名函数函数的执行环境具有全局性，因此这里的this相当于window。
+ - 全局函数中，this相当于window。
+ - 函数被作为某个对象调用时，this等于那个对象。
+
+ ```
+var name ="The Window"
+var obj = {
+  name:"The Object",
+  getNameFunc: function(){
+    return function(){
+      return this.name
+    }
+  }
+}
+alert(obj.getNameFunc()()) //"The Window"
+ ```
+
+- 模仿块级作用域（私有作用域）
+```
+(function(){
+
+})()
+```
+
+- 多次声明同一个变量，后续声明被忽略，不过会执行后续声明的变量的初始化。
+初始化未经声明的变量，总是会创建一个全局变量。
+
+- 私有变量
+  - 函数参数。
+  - 局部变量。
+  - 函数内部定义的其他函数。
+
+- 模块模式
+  单例：只有一个实例对象
+  特权方法：有权访问私有变量、私有函数的公有方法称为特权方法。
+  模块模式：为单例创建私有变量、特权方法。
+  ```
+  var application = function () {
+    var components = []
+    components.push(new BaseComponents())
+    
+    return {
+      getComponentCount:function(){
+
+      },
+      registerComponent: function(component){
+        if(typeof component === 'object'){
+          components.push(component)
+        }
+      }
+    }
+  }
+  ```
