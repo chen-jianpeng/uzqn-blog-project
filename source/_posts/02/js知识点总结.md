@@ -497,3 +497,20 @@ alert(obj.getNameFunc()()) //"The Window"
     }
   }
   ```
+
+  # DOM
+  - Node 类型：Dom中所有节点类型实现,javascript中所有节点类型都继承自Node类型
+   `nodeName` `nodeValue`
+   `childNodes` `NodeList`(类数组对象)
+   `parentNode` `previousSibling` `nextSibling` 
+   `firstChild` `lastChild`
+   `hasChildNodes()` `ownerDocument()`
+   `appendChild()` 如果传入的节点已经是文档的一部分，那么节点将从原来的位置移动到新的位置。
+   `insertBefore()` `replaceChild()` `removeChild()` `cloneNode()` 
+   `normallize()` 删除空文本节点，合并相邻文本节点
+
+  - Document类型:表示文档类型
+    在浏览器中document对象是HTMLDocument（继承自Document类型）的一个实例，表示整个html页面。
+    document对象是window对象的一个属性，因此可以全局访问。
+
+    Document类型：nodeType：9，nodeName：“#document”，nodeValue、parentNode、ownerDocument都是null。
