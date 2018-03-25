@@ -5,7 +5,7 @@ tags: vue
 header-img: "head.jpg"
 ---
 
-## vue与juqery的区别
+## vue与juqery的区别 
 通过TODO List实现的例子总结得出
 1.数据视图分离，解耦（开放封闭原则：对扩展开放，对修改封闭）。
 2.数据驱动视图，只关心数据变化，dom操作被封装。
