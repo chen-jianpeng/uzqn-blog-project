@@ -27,6 +27,129 @@ View了解Controller，Controller了解Model，而View能够直接访问Model。
 视图通过事件绑定，经过视图模型操作数据，数据通过数据绑定，经过视图模型修改视图
 !['vue'](vue.png)
 
+## vue构造函数
+整体流程如下：
+1、Vue.prototype 下的属性和方法的挂载主要是在src/core/instance目录中的代码处理的。
+2、Vue下的静态属性和方法的挂载主要是在src/core/global-api目录下的代码处理的。
+3、web-runtime.js主要是添加web平台特有的配置、组件和指令，web-runtime-with-compiler.js给Vue的$mount方法添加compiler编译器，支持template。
+具体来看如下：
+定义 Vue 构造函数，然后以Vue构造函数为参数，调用了五个方法，最后导出 Vue。这些方法的作用，就是在 Vue 的原型 prototype 上挂载方法或属性。
+```
+function Vue (options) {
+  if (process.env.NODE_ENV !== 'production' &&
+    !(this instanceof Vue)) {
+    warn('Vue is a constructor and should be called with the `new` keyword')
+  }
+  this._init(options)
+}
+
+// initMixin(Vue)    src/core/instance/init.js 
+Vue.prototype._init = function (options?: Object) {}
+
+// stateMixin(Vue)    src/core/instance/state.js 
+Vue.prototype.$data
+Vue.prototype.$set = set
+Vue.prototype.$delete = del
+Vue.prototype.$watch = function(){}
+
+// renderMixin(Vue)    src/core/instance/render.js 
+Vue.prototype.$nextTick = function (fn: Function) {}
+Vue.prototype._render = function (): VNode {}
+Vue.prototype._s = _toString
+Vue.prototype._v = createTextVNode
+Vue.prototype._n = toNumber
+Vue.prototype._e = createEmptyVNode
+Vue.prototype._q = looseEqual
+Vue.prototype._i = looseIndexOf
+Vue.prototype._m = function(){}
+Vue.prototype._o = function(){}
+Vue.prototype._f = function resolveFilter (id) {}
+Vue.prototype._l = function(){}
+Vue.prototype._t = function(){}
+Vue.prototype._b = function(){}
+Vue.prototype._k = function(){}
+
+// eventsMixin(Vue)    src/core/instance/events.js 
+Vue.prototype.$on = function (event: string, fn: Function): Component {}
+Vue.prototype.$once = function (event: string, fn: Function): Component {}
+Vue.prototype.$off = function (event?: string, fn?: Function): Component {}
+Vue.prototype.$emit = function (event: string): Component {}
+
+// lifecycleMixin(Vue)    src/core/instance/lifecycle.js 
+Vue.prototype._mount = function(){}
+Vue.prototype._update = function (vnode: VNode, hydrating?: boolean) {}
+Vue.prototype._updateFromParent = function(){}
+Vue.prototype.$forceUpdate = function () {}
+Vue.prototype.$destroy = function () {}
+```
+
+导入上文导出的Vue（已经在原型上挂载了方法和属性），将Vue作为参数传给initGlobalAPI ，最后又在 Vue.prototype上挂载了 $isServer，在Vue上挂载了version属性。
+```
+initGlobalAPI(Vue)
+
+Object.defineProperty(Vue.prototype, '$isServer', {
+  get: isServerRendering
+})
+
+Vue.version = '__VERSION__'
+```
+
+initGlobalAPI 的作用是在 Vue 构造函数上挂载静态属性和方法，Vue 在经过 initGlobalAPI 之后，会变成这样：
+```
+// src/core/index.js / src/core/global-api/index.js
+Vue.config
+Vue.util = util
+Vue.set = set
+Vue.delete = del
+Vue.nextTick = util.nextTick
+Vue.options = {
+  components: {
+      KeepAlive
+  },
+  directives: {},
+  filters: {},
+  _base: Vue
+}
+Vue.use
+Vue.mixin
+Vue.cid = 0
+Vue.extend
+Vue.component = function(){}
+Vue.directive = function(){}
+Vue.filter = function(){}
+
+Vue.prototype.$isServer
+Vue.version = '__VERSION__'
+```
+
+覆盖Vue.config的属性，将其设置为平台特有的一些方法。Vue.options.directives和Vue.options.components安装平台特有的指令和组件。在Vue.prototype上定义`__patch__`和 `$mount`。
+```
+// 安装平台特定的utils
+Vue.config.isUnknownElement = isUnknownElement
+Vue.config.isReservedTag = isReservedTag
+Vue.config.getTagNamespace = getTagNamespace
+Vue.config.mustUseProp = mustUseProp
+// 安装平台特定的指令和组件
+Vue.options = {
+  components: {
+    KeepAlive,
+    Transition,
+    TransitionGroup
+  },
+  directives: {
+    model,
+    show
+  },
+  filters: {},
+  _base: Vue
+}
+Vue.prototype.__patch__
+Vue.prototype.$mount
+```
+
+缓存来自web-runtime.js文件的$mount函数，然后覆盖覆盖了Vue.prototype.$mount。在Vue上挂载compile，compileToFunctions函数的作用，就是将模板template编译为render函数。
+
+
 ## 三要素：
 - 响应式：监听数据变化。
 - 模板引擎：解析模板指令。
@@ -192,3 +315,4 @@ function updateComponent(){
 第二步：响应式开始监听
 第三步：首次渲染，显示页面，且绑定依赖
 第四部：data属性变化，触发set监听执行updateComponent方法，然后触发rernder函数（render函数再次执行，重新patch）
+
