@@ -28,11 +28,13 @@ View了解Controller，Controller了解Model，而View能够直接访问Model。
 !['vue'](vue.png)
 
 ## vue构造函数
+此章节内容引用自[Vue源码学习](http://hcysun.me/2017/03/03/Vue%E6%BA%90%E7%A0%81%E5%AD%A6%E4%B9%A0/#%E4%B8%89%E3%80%81Vue-%E7%9A%84%E6%9E%84%E9%80%A0%E5%87%BD%E6%95%B0%E6%98%AF%E4%BB%80%E4%B9%88%E6%A0%B7%E7%9A%84)
 整体流程如下：
 1、Vue.prototype 下的属性和方法的挂载主要是在src/core/instance目录中的代码处理的。
 2、Vue下的静态属性和方法的挂载主要是在src/core/global-api目录下的代码处理的。
 3、web-runtime.js主要是添加web平台特有的配置、组件和指令，web-runtime-with-compiler.js给Vue的$mount方法添加compiler编译器，支持template。
-具体来看如下：
+
+### 初始化，绑定原型对象属性
 定义 Vue 构造函数，然后以Vue构造函数为参数，调用了五个方法，最后导出 Vue。这些方法的作用，就是在 Vue 的原型 prototype 上挂载方法或属性。
 ```
 function Vue (options) {
@@ -43,16 +45,16 @@ function Vue (options) {
   this._init(options)
 }
 
-// initMixin(Vue)    src/core/instance/init.js 
+// initMixin(Vue) 初始化入口    src/core/instance/init.js
 Vue.prototype._init = function (options?: Object) {}
 
-// stateMixin(Vue)    src/core/instance/state.js 
+// stateMixin(Vue) 数据绑定，$watch方法   src/core/instance/state.js 
 Vue.prototype.$data
 Vue.prototype.$set = set
 Vue.prototype.$delete = del
 Vue.prototype.$watch = function(){}
 
-// renderMixin(Vue)    src/core/instance/render.js 
+// renderMixin(Vue) 渲染方法，用来生成render function 和 VNode   src/core/instance/render.js 
 Vue.prototype.$nextTick = function (fn: Function) {}
 Vue.prototype._render = function (): VNode {}
 Vue.prototype._s = _toString
@@ -69,13 +71,13 @@ Vue.prototype._t = function(){}
 Vue.prototype._b = function(){}
 Vue.prototype._k = function(){}
 
-// eventsMixin(Vue)    src/core/instance/events.js 
+// eventsMixin(Vue) 事件方法，比如$on,$off,$emit   src/core/instance/events.js 
 Vue.prototype.$on = function (event: string, fn: Function): Component {}
 Vue.prototype.$once = function (event: string, fn: Function): Component {}
 Vue.prototype.$off = function (event?: string, fn?: Function): Component {}
 Vue.prototype.$emit = function (event: string): Component {}
 
-// lifecycleMixin(Vue)    src/core/instance/lifecycle.js 
+// lifecycleMixin(Vue) 生命周期方法   src/core/instance/lifecycle.js 
 Vue.prototype._mount = function(){}
 Vue.prototype._update = function (vnode: VNode, hydrating?: boolean) {}
 Vue.prototype._updateFromParent = function(){}
@@ -83,6 +85,7 @@ Vue.prototype.$forceUpdate = function () {}
 Vue.prototype.$destroy = function () {}
 ```
 
+### 绑定静态属性和方法
 导入上文导出的Vue（已经在原型上挂载了方法和属性），将Vue作为参数传给initGlobalAPI ，最后又在 Vue.prototype上挂载了 $isServer，在Vue上挂载了version属性。
 ```
 initGlobalAPI(Vue)
@@ -122,6 +125,7 @@ Vue.prototype.$isServer
 Vue.version = '__VERSION__'
 ```
 
+### 安装指令和组件
 覆盖Vue.config的属性，将其设置为平台特有的一些方法。Vue.options.directives和Vue.options.components安装平台特有的指令和组件。在Vue.prototype上定义`__patch__`和 `$mount`。
 ```
 // 安装平台特定的utils
@@ -147,10 +151,139 @@ Vue.prototype.__patch__
 Vue.prototype.$mount
 ```
 
+### 覆盖$mount,编译模板函数
 缓存来自web-runtime.js文件的$mount函数，然后覆盖覆盖了Vue.prototype.$mount。在Vue上挂载compile，compileToFunctions函数的作用，就是将模板template编译为render函数。
 
+### 一个vue实例化过程的例子
+实例化一个vue对象
+```
+let v = new Vue({
+  el: '#app',
+  data: {
+    a: 1,
+    b: [1, 2, 3]
+  }
+})
+```
+首先执行_init(option),使用策略对象合并参数选项
+```
+Vue.prototype._init = function (options?: Object) {
+  const vm: Component = this
+  // a uid
+  vm._uid = uid++
+  // a flag to avoid this being observed
+  vm._isVue = true
+  // merge options
+  if (options && options._isComponent) {
+    // optimize internal component instantiation
+    // since dynamic options merging is pretty slow, and none of the
+    // internal component options needs special treatment.
+    initInternalComponent(vm, options)
+  } else {
+    vm.$options = mergeOptions(
+      resolveConstructorOptions(vm.constructor),
+      options || {},
+      vm
+    )
+  }
+  /* istanbul ignore else */
+  if (process.env.NODE_ENV !== 'production') {
+    initProxy(vm)
+  } else {
+    vm._renderProxy = vm
+  }
 
-## 三要素：
+  // expose real self
+  vm._self = vm
+  initLifecycle(vm)
+  initEvents(vm)
+  callHook(vm, 'beforeCreate')
+  initState(vm)
+  callHook(vm, 'created')
+  initRender(vm)
+}
+```
+上边给mergeOptions方法传递的参数相当于下边的形式。
+```
+vm.$options = mergeOptions(
+  // Vue.options
+  {
+    components: {
+      KeepAlive,
+      Transition,
+      TransitionGroup
+    },
+    directives: {
+      model,
+      show
+    },
+    filters: {},
+    _base: Vue
+  },
+  // 调用Vue构造函数时传入的参数选项 options
+  {
+    el: '#app',
+    data: {
+      a: 1,
+      b: [1, 2, 3]
+    }
+  },
+  // this
+  vm
+)
+```
+
+实例化结果
+```
+// 在 Vue.prototype._init 中添加的属性 
+this._uid = uid++
+this._isVue = true
+this.$options = {
+    components,
+    directives,
+    filters,
+    _base,
+    el,
+    data: mergedInstanceDataFn()
+}
+this._renderProxy = this
+this._self = this
+
+// 在 initLifecycle 中添加的属性
+this.$parent = parent
+this.$root = parent ? parent.$root : this
+
+this.$children = []
+this.$refs = {}
+
+this._watcher = null
+this._inactive = false
+this._isMounted = false
+this._isDestroyed = false
+this._isBeingDestroyed = false
+
+// 在 initEvents     中添加的属性 
+this._events = {}
+this._updateListeners = function(){}
+
+// 在 initState 中添加的属性
+this._watchers = []
+    // initData
+    this._data
+
+// 在 initRender     中添加的属性     
+this.$vnode = null // the placeholder node in parent tree
+this._vnode = null // the root of the child tree
+this._staticTrees = null
+this.$slots
+this.$scopedSlots
+this._c
+this.$createElement
+```
+
+初始化工作与Vue实例对象的设计
+
+## vue三要素：
 - 响应式：监听数据变化。
 - 模板引擎：解析模板指令。
 - 渲染：模板结合modal如何生成DOM，当产生变化时更新DOM。
@@ -212,8 +345,8 @@ vue中模板的本质就是嵌入js变量的有逻辑的字符串，通过处理
     data: data,
     methods: {
       add: function () {
-        this.list.push(this.title)
-        this.title = ''
+this.list.push(this.title)
+this.title = ''
       }
     }
   })
@@ -226,56 +359,56 @@ with(this){  // this 就是 vm
   return _c(
     'div',
     {
-        attrs:{"id":"app"}
+attrs:{"id":"app"}
     },
     [
       _c(
-        'div',
-        [
-          _c(
-            'input',
-            {
-              directives:[
-                {
-                  name:"model",
-                  rawName:"v-model",
-                  // 这里get title这个值，显示
-                  value:(title),
-                  expression:"title"
-                }
-              ],
-              domProps:{
-                "value":(title)
-              },
-              on:{
-                "input":function($event){
-                  if($event.target.composing)return;
-                  // 这里set title
-                  title=$event.target.value
-                }
-              }
-            }
-          ),
-          _v(" "),
-          _c(
-            'button',
-            {
-              on:{
-                "click":add
-              }
-            },
-            [_v("submit")]
-          )
-        ]
+'div',
+[
+  _c(
+    'input',
+    {
+      directives:[
+{
+  name:"model",
+  rawName:"v-model",
+  // 这里get title这个值，显示
+  value:(title),
+  expression:"title"
+}
+      ],
+      domProps:{
+"value":(title)
+      },
+      on:{
+"input":function($event){
+  if($event.target.composing)return;
+  // 这里set title
+  title=$event.target.value
+}
+      }
+    }
+  ),
+  _v(" "),
+  _c(
+    'button',
+    {
+      on:{
+"click":add
+      }
+    },
+    [_v("submit")]
+  )
+]
       ),
       _v(" "),
       _c('div',
-        [
-          _c(
-            'ul',
-            _l((list),function(item){return _c('li',[_v(_s(item))])})
-          )
-        ]
+[
+  _c(
+    'ul',
+    _l((list),function(item){return _c('li',[_v(_s(item))])})
+  )
+]
       )
     ]
   )
@@ -306,9 +439,6 @@ function updateComponent(){
   vm._update(vm.render())
 }
 ```
-
-## 绑定依赖
-监听get。为什么要监听get？因为data中不是所有属性都被用到，不被用到我们也就不需要关心，这样避免了不必要的重复渲染。
 
 ## 总结：vue整个的实现流程
 第一步：解析模板成render函数
