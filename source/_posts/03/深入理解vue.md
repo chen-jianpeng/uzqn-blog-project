@@ -283,6 +283,114 @@ this.$createElement
 
 初始化工作与Vue实例对象的设计
 
+## 数据响应系统
+Vue的数据响应系统包含三个部分：Observer、Dep、Watcher。
+
+```
+var data = {
+  name: 'chenjp',
+  age: 25,
+  school: {
+    text: 'NCU',
+    major: 'computer'
+  }
+}
+
+observer(data)
+
+new Watch('name', function (oldVal, newVal) {
+  console.log('name changed', oldVal, newVal)
+  console.log(data) // 这里data还是原来的，没变
+})
+
+function Watch(exp, fn) {
+  this.exp = exp
+  this.fn = fn
+  pushTarget(this)
+  data[exp] // 触发get，与observer关联
+}
+
+// 依赖管理
+function Dep() {
+  this.subs = []
+  this.depend = function () {
+    this.subs.push(Dep.target)
+  }
+  this.notify = function (oldVal, newVal) {
+    for (let i = 0; i < this.subs.length; i++) {
+      this.subs[i].fn(oldVal, newVal)
+    }
+  }
+}
+
+Dep.target = null
+
+function pushTarget(watch) {
+  Dep.target = watch
+}
+
+//将数据对象data的属性转换为访问器属性
+function observer(thisData) {
+  if (Object.prototype.toString.call(thisData) === '[object Object]') {
+    for (let item in thisData) {
+      let dep = new Dep()
+      let val = thisData[item]
+      observer(val)
+      Object.defineProperty(thisData, item, {
+        enumerable: true,
+        configurable: true,
+        get: function () {
+          // 添加依赖
+          dep.depend()
+          return val
+        },
+        set: function (newVal) {
+          if (val === newVal) {
+            return
+          }
+          observer(newVal)
+          // 触发依赖
+          dep.notify(val, newVal)
+        }
+      })
+    }
+  } else {
+    return
+  }
+}
+```
+
+## 渲染与重新渲染
+将template编译成render函数，这个函数返回一个虚拟dom节点。
+```
+vm._watcher = new Watcher(vm, () => {
+  vm._update(vm._render(), hydrating)
+}, noop)
+```
+当 vm._render 执行的时候，所依赖的变量就会被求值，并被收集为依赖。按照Vue中 watcher.js 的逻辑，当依赖的变量有变化时不仅仅回调函数被执行，实际上还要重新求值，即还要执行一遍。
+
+vm_render 方法最终返回一个 vnode 对象，即虚拟DOM，然后作为 vm_update 的第一个参数传递了过去，我们看一下 vm_update 的逻辑，在 src/core/instance/lifecycle.js 文件中有这么一段代码：
+```
+if (!prevVnode) {
+  // initial render
+  vm.$el = vm.__patch__(
+    vm.$el, vnode, hydrating, false /* removeOnly */,
+    vm.$options._parentElm,
+    vm.$options._refElm
+  )
+} else {
+  // updates
+  vm.$el = vm.__patch__(prevVnode, vnode)
+}
+```
+如果还没有 prevVnode 说明是首次渲染，直接创建真实DOM。如果已经有了 prevVnode 说明不是首次渲染，那么就采用 patch 算法进行必要的DOM操作。这就是Vue更新DOM的逻辑。
+
+## vue数据绑定预渲染总结
+1. 构建数据响应系统，使用 Observer 将数据data转换为访问器属性；将 el 编译为 render 函数，render 函数返回值为虚拟DOM
+2. 在 `_mount` 中对` _update` 求值，而 `_update` 又会对 render 求值，render 内部又会对依赖的变量求值，收集为被求值的变量的依赖，当变量改变时，`_update` 又会重新执行一遍，从而做到 re-render。
+
+![](vueimgdetail.png)
+
 ## vue三要素：
 - 响应式：监听数据变化。
 - 模板引擎：解析模板指令。
