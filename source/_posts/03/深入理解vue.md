@@ -361,71 +361,65 @@ function observer(thisData) {
 ```
 
 ## 渲染与重新渲染
-将template编译成render函数，这个函数返回一个虚拟dom节点。
+模板->render函数->DOM。将template编译成render函数，这个函数返回一个虚拟dom节点，最终渲染成dom。
+
+Vue生命周期当中初始化的最后阶段：将vm实例挂载到dom上，源码在src/core/instance/init.js
 ```
-vm._watcher = new Watcher(vm, () => {
-  vm._update(vm._render(), hydrating)
-}, noop)
+Vue.prototype._init = function () {
+    ...
+    vm.$mount(vm.$options.el)  
+    ...
+}
+```
+实际上是调用了src/core/instance/lifecycle.js中的mountComponent方法，
+mountComponent函数的定义是：
+```
+export function mountComponent (
+  vm: Component,
+  el: ?Element,
+  hydrating?: boolean
+): Component {
+  // vm.$el为真实的node
+  vm.$el = el
+  // 如果vm上没有挂载render函数
+  if (!vm.$options.render) {
+    // 空节点
+    vm.$options.render = createEmptyVNode
+  }
+  // 钩子函数
+  callHook(vm, 'beforeMount')
+
+  let updateComponent
+  /* istanbul ignore if */
+  if (process.env.NODE_ENV !== 'production' && config.performance && mark) {
+    ...
+  } else {
+    // updateComponent为监听函数, new Watcher(vm, updateComponent, noop)
+    updateComponent = () => {
+      // Vue.prototype._render 渲染函数
+      // vm._render() 返回一个VNode
+      // 更新dom
+      // vm._render()调用render函数，会返回一个VNode，在生成VNode的过程中，会动态计算getter,同时推入到dep里面
+      vm._update(vm._render(), hydrating)
+    }
+  }
+
+  // 新建一个_watcher对象
+  // vm实例上挂载的_watcher主要是为了更新DOM
+  // vm/expression/cb
+  vm._watcher = new Watcher(vm, updateComponent, noop)
+  hydrating = false
+
+  // manually mounted instance, call mounted on self
+  // mounted is called for render-created child components in its inserted hook
+  if (vm.$vnode == null) {
+    vm._isMounted = true
+    callHook(vm, 'mounted')
+  }
+  return vm
+}
 ```
 当 vm._render 执行的时候，所依赖的变量就会被求值，并被收集为依赖。按照Vue中 watcher.js 的逻辑，当依赖的变量有变化时不仅仅回调函数被执行，实际上还要重新求值，即还要执行一遍。
-
-vm_render 方法最终返回一个 vnode 对象，即虚拟DOM，然后作为 vm_update 的第一个参数传递了过去，我们看一下 vm_update 的逻辑，在 src/core/instance/lifecycle.js 文件中有这么一段代码：
-```
-if (!prevVnode) {
-  // initial render
-  vm.$el = vm.__patch__(
-    vm.$el, vnode, hydrating, false /* removeOnly */,
-    vm.$options._parentElm,
-    vm.$options._refElm
-  )
-} else {
-  // updates
-  vm.$el = vm.__patch__(prevVnode, vnode)
-}
-```
-如果还没有 prevVnode 说明是首次渲染，直接创建真实DOM。如果已经有了 prevVnode 说明不是首次渲染，那么就采用 patch 算法进行必要的DOM操作。这就是Vue更新DOM的逻辑。
-
-## vue数据绑定预渲染总结
-1. 构建数据响应系统，使用 Observer 将数据data转换为访问器属性；将 el 编译为 render 函数，render 函数返回值为虚拟DOM
-2. 在 `_mount` 中对` _update` 求值，而 `_update` 又会对 render 求值，render 内部又会对依赖的变量求值，收集为被求值的变量的依赖，当变量改变时，`_update` 又会重新执行一遍，从而做到 re-render。
-
-![](vueimgdetail.png)
-
-## vue三要素：
-- 响应式：监听数据变化。
-- 模板引擎：解析模板指令。
-- 渲染：模板结合modal如何生成DOM，当产生变化时更新DOM。
-
-### 响应式
-- 修改了data属性之后，vue立刻监听到。
-- data被代理到VM上（data中的属性变成vue中的属性，可以通过this访问）。
-- 核心实现是通过`Object.defineProperty`API。
-  通过在get、set方法中实现对数据的监听。
-
-```
-var vm = {}
-var data = {
-  name: 'HellowWord',
-  age: 25
-}
-// 通过遍历data，将data代理到vm上
-for(let key in data){
-  Object.defineProperty(vm, key, {
-    get:function(){
-      console.log('get', key) //监听获取值
-      return data[key]
-    },
-    set:function(newName){
-      console.log('set', key) //监听设置值
-      data[key] = newName
-    }
-  })
-}
-```
-
-### 模板引擎
-模板->render函数->DOM
-vue中模板的本质就是嵌入js变量的有逻辑的字符串，通过处理得到一个js函数（这里的js函数就是render函数。这里的处理方法，在以前是一个很麻烦的过程，但vue2.0开始支持预编译，开发环境下写模板，经过编译打包，生产环境下变成所需要的js函数），最终被转为HTML。
 
 模板内容如下
 ```
@@ -453,8 +447,8 @@ vue中模板的本质就是嵌入js变量的有逻辑的字符串，通过处理
     data: data,
     methods: {
       add: function () {
-this.list.push(this.title)
-this.title = ''
+      this.list.push(this.title)
+      this.title = ''
       }
     }
   })
@@ -467,86 +461,91 @@ with(this){  // this 就是 vm
   return _c(
     'div',
     {
-attrs:{"id":"app"}
+      attrs:{"id":"app"}
     },
     [
       _c(
-'div',
-[
-  _c(
-    'input',
-    {
-      directives:[
-{
-  name:"model",
-  rawName:"v-model",
-  // 这里get title这个值，显示
-  value:(title),
-  expression:"title"
-}
-      ],
-      domProps:{
-"value":(title)
-      },
-      on:{
-"input":function($event){
-  if($event.target.composing)return;
-  // 这里set title
-  title=$event.target.value
-}
-      }
-    }
-  ),
-  _v(" "),
-  _c(
-    'button',
-    {
-      on:{
-"click":add
-      }
-    },
-    [_v("submit")]
-  )
-]
-      ),
-      _v(" "),
-      _c('div',
-[
-  _c(
-    'ul',
-    _l((list),function(item){return _c('li',[_v(_s(item))])})
-  )
-]
-      )
+        'div',
+        [
+          _c(
+            'input',
+            {
+              directives:[
+                {
+                  name:"model",
+                  rawName:"v-model",
+                  // 这里get title这个值，显示
+                  value:(title),
+                  expression:"title"
+                }
+              ],
+              domProps:{
+                "value":(title)
+              },
+              on:{
+                "input":function($event){
+                  if($event.target.composing)return;
+                  // 这里set title
+                  title=$event.target.value
+                }
+              }
+            }
+          ),
+          _v(" "),
+          _c(
+            'button',
+            {
+              on:{
+                "click":add
+              }
+            },
+            [_v("submit")]
+            )
+        ]
+        ),
+        _v(" "),
+        _c('div',
+          [
+            _c(
+              'ul',
+              _l((list),function(item){return _c('li',[_v(_s(item))])})
+            )
+          ]
+          )
     ]
   )
 }
 ```
 
-### 渲染
-虚拟DOM的两个函数：
-- render函数创建虚拟节点（nodeList），
-- patch函数：用途1：将虚拟节点渲染到一个空的dom元素上，用途2：新旧节点进行对比，将有差异的部分重新渲染到真实dom节点上。
-
-那么我们就知道了，上边的render函数返回的是一个虚拟dom节点。那vue是如何进行渲染的呢？
-
-初次渲染时，执行UpdateComponent方法，执行render函数。render函数的执行会访问属性值，这样就会被响应式的get方法监听到（绑定依赖）。执行updateComponent方法会触发虚拟dom的patch方法，patch方法将虚拟节点渲染成真正的dom，完成初次渲染。
-
+vm_render 方法最终返回一个 vnode 对象，即虚拟DOM，然后作为 vm_update 的第一个参数传递了过去，我们看一下 vm_update 的逻辑，在 src/core/instance/lifecycle.js 文件中有这么一段代码：
 ```
-vm._update(vnode) {
-  const prevVnode = vm._vnode
-  vm._vnode = vnode
-  if(!prevVnode){
-    vm.$el = vm.__patch__(vm.$el, vnode)
-  }else {
-    vm.$el = vm.__patch__(prevVnode, vnode)
-  }
-}
-
-function updateComponent(){
-  vm._update(vm.render())
+if (!prevVnode) {
+  // initial render
+  vm.$el = vm.__patch__(
+    vm.$el, vnode, hydrating, false /* removeOnly */,
+    vm.$options._parentElm,
+    vm.$options._refElm
+  )
+} else {
+  // updates
+  vm.$el = vm.__patch__(prevVnode, vnode)
 }
 ```
+如果还没有 prevVnode 说明是首次渲染，直接创建真实DOM。如果已经有了 prevVnode 说明不是首次渲染，那么就调用patch函数，patch函数用新的vnode和老的vnode进行diff，最后完成dom的更新工作。这就是Vue更新DOM的逻辑。
+
+## vue数据绑定预渲染总结
+实例化一个watcher，在求值的过程中this.value = this.lazy ? undefined : this.get()，会调用this.get()方法，因此在实例化的过程当中Dep.target会被设为这个watcher，通过调用vm._render()方法生成新的Vnode并进行diff的过程中完成了模板当中变量依赖收集工作。即这个watcher被添加到了在模板当中所绑定变量的依赖当中。一旦model中的响应式的数据发生了变化，这些响应式的数据所维护的dep数组便会调用dep.notify()方法完成所有依赖遍历执行的工作，这里面就包括了视图的更新即。
+
+![](vueimgdetail.png)
+
+## vue三要素：
+- 响应式：监听数据变化。
+- 模板引擎：解析模板指令。
+- 渲染：模板结合modal如何生成DOM，当产生变化时更新DOM。
+
+## 虚拟DOM
+vdom很好的将dom做了一层映射关系
+vdom完全是用js去实现，和宿主浏览器没有任何联系
 
 ## 总结：vue整个的实现流程
 第一步：解析模板成render函数
