@@ -5,12 +5,14 @@ tags: vue
 header-img: "head.jpg"
 ---
 
-## vue与juqery的区别 
+## 写在前面
+
+### vue与juqery的区别 
 通过TODO List实现的例子总结得出
 1.数据视图分离，解耦（开放封闭原则：对扩展开放，对修改封闭）。
 2.数据驱动视图，只关心数据变化，dom操作被封装。
 
-## MVC
+### MVC
 - View 传送指令到 Controller
 - Controller 完成业务逻辑后，要求 Model 改变状态
 - Model 将新的数据发送到 View，用户得到反馈
@@ -19,7 +21,7 @@ View了解Controller，Controller了解Model，而View能够直接访问Model。
 例如用户点击了一个按钮（操作了视图），然后controller进行业务逻辑操作，最后将操作结果发送给视图。
 !['mvc'](mvc.png)
 
-## MVVM
+### MVVM
 - M 数据，对应于vue中的data
 - V 视图，对应于DOM
 - VM 视图模型，对应于vue实例
@@ -27,14 +29,21 @@ View了解Controller，Controller了解Model，而View能够直接访问Model。
 视图通过事件绑定，经过视图模型操作数据，数据通过数据绑定，经过视图模型修改视图
 !['vue'](vue.png)
 
-## vue构造函数
-此章节内容引用自[Vue源码学习](http://hcysun.me/2017/03/03/Vue%E6%BA%90%E7%A0%81%E5%AD%A6%E4%B9%A0/#%E4%B8%89%E3%80%81Vue-%E7%9A%84%E6%9E%84%E9%80%A0%E5%87%BD%E6%95%B0%E6%98%AF%E4%BB%80%E4%B9%88%E6%A0%B7%E7%9A%84)
+## 源码分析
+[Vue源码学习](http://hcysun.me/2017/03/03/Vue%E6%BA%90%E7%A0%81%E5%AD%A6%E4%B9%A0/)
+
+### vue三要素
+- 响应式：监听数据变化。
+- 模板引擎：解析模板指令。
+- 渲染：模板结合modal如何生成DOM，当产生变化时更新DOM。
+
+### vue构造函数
 整体流程如下：
 1、Vue.prototype 下的属性和方法的挂载主要是在src/core/instance目录中的代码处理的。
 2、Vue下的静态属性和方法的挂载主要是在src/core/global-api目录下的代码处理的。
 3、web-runtime.js主要是添加web平台特有的配置、组件和指令，web-runtime-with-compiler.js给Vue的$mount方法添加compiler编译器，支持template。
 
-### 初始化，绑定原型对象属性
+#### 初始化，绑定原型对象属性
 定义 Vue 构造函数，然后以Vue构造函数为参数，调用了五个方法，最后导出 Vue。这些方法的作用，就是在 Vue 的原型 prototype 上挂载方法或属性。
 ```
 function Vue (options) {
@@ -85,7 +94,7 @@ Vue.prototype.$forceUpdate = function () {}
 Vue.prototype.$destroy = function () {}
 ```
 
-### 绑定静态属性和方法
+#### 绑定静态属性和方法
 导入上文导出的Vue（已经在原型上挂载了方法和属性），将Vue作为参数传给initGlobalAPI ，最后又在 Vue.prototype上挂载了 $isServer，在Vue上挂载了version属性。
 ```
 initGlobalAPI(Vue)
@@ -125,7 +134,7 @@ Vue.prototype.$isServer
 Vue.version = '__VERSION__'
 ```
 
-### 安装指令和组件
+#### 安装指令和组件
 覆盖Vue.config的属性，将其设置为平台特有的一些方法。Vue.options.directives和Vue.options.components安装平台特有的指令和组件。在Vue.prototype上定义`__patch__`和 `$mount`。
 ```
 // 安装平台特定的utils
@@ -151,10 +160,10 @@ Vue.prototype.__patch__
 Vue.prototype.$mount
 ```
 
-### 覆盖$mount,编译模板函数
+#### 覆盖$mount,编译模板函数
 缓存来自web-runtime.js文件的$mount函数，然后覆盖覆盖了Vue.prototype.$mount。在Vue上挂载compile，compileToFunctions函数的作用，就是将模板template编译为render函数。
 
-### 一个vue实例化过程的例子
+#### 一个vue实例化过程的例子
 实例化一个vue对象
 ```
 let v = new Vue({
@@ -283,7 +292,7 @@ this.$createElement
 
 初始化工作与Vue实例对象的设计
 
-## 数据响应系统
+### 数据响应系统
 Vue的数据响应系统包含三个部分：Observer、Dep、Watcher。
 
 ```
@@ -360,7 +369,7 @@ function observer(thisData) {
 }
 ```
 
-## 渲染与重新渲染
+### 渲染与重新渲染
 模板->render函数->DOM。将template编译成render函数，这个函数返回一个虚拟dom节点，最终渲染成dom。
 
 Vue生命周期当中初始化的最后阶段：将vm实例挂载到dom上，源码在src/core/instance/init.js
@@ -533,23 +542,27 @@ if (!prevVnode) {
 ```
 如果还没有 prevVnode 说明是首次渲染，直接创建真实DOM。如果已经有了 prevVnode 说明不是首次渲染，那么就调用patch函数，patch函数用新的vnode和老的vnode进行diff，最后完成dom的更新工作。这就是Vue更新DOM的逻辑。
 
-## vue数据绑定预渲染总结
+### vue数据绑定预渲染总结
 实例化一个watcher，在求值的过程中this.value = this.lazy ? undefined : this.get()，会调用this.get()方法，因此在实例化的过程当中Dep.target会被设为这个watcher，通过调用vm._render()方法生成新的Vnode并进行diff的过程中完成了模板当中变量依赖收集工作。即这个watcher被添加到了在模板当中所绑定变量的依赖当中。一旦model中的响应式的数据发生了变化，这些响应式的数据所维护的dep数组便会调用dep.notify()方法完成所有依赖遍历执行的工作，这里面就包括了视图的更新即。
 
 ![](vueimgdetail.png)
 
-## vue三要素：
-- 响应式：监听数据变化。
-- 模板引擎：解析模板指令。
-- 渲染：模板结合modal如何生成DOM，当产生变化时更新DOM。
-
-## 虚拟DOM
-vdom很好的将dom做了一层映射关系
-vdom完全是用js去实现，和宿主浏览器没有任何联系
-
-## 总结：vue整个的实现流程
+### 总结：vue整个的实现流程
 第一步：解析模板成render函数
 第二步：响应式开始监听
 第三步：首次渲染，显示页面，且绑定依赖
 第四部：data属性变化，触发set监听执行updateComponent方法，然后触发rernder函数（render函数再次执行，重新patch）
 
+## 虚拟DOM
+vdom很好的将dom做了一层映射关系
+vdom完全是用js去实现，和宿主浏览器没有任何联系
+这里就分享两篇写的非常好的文章吧
+[Vue 2.0 的 virtual-dom 实现简析](https://github.com/DDFE/DDFE-blog/issues/18)
+[深入 Vue2.x 的虚拟 DOM diff 原理](https://cloud.tencent.com/developer/article/1006029)
+
+## vue-router原理
+[vue-router 实现分析](https://cnodejs.org/topic/58d680c903d476b42d34c72b)
+[vue-router源码分析-整体流程](https://github.com/DDFE/DDFE-blog/issues/9)
+
+## vuex原理
+[Vuex框架原理与源码分析](https://tech.meituan.com/vuex-code-analysis.html)
