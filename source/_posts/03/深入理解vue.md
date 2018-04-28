@@ -29,7 +29,11 @@ View了解Controller，Controller了解Model，而View能够直接访问Model。
 视图通过事件绑定，经过视图模型操作数据，数据通过数据绑定，经过视图模型修改视图
 !['vue'](vue.png)
 
-## 源码分析
+### 源码分析思路过程
+首先文档，然后通过一个简单的例子开始，从入口文件一步步分析，抓住主线。
+vue组件通常都有一个install方法，用于将组件装在到vue对象上。
+
+## vue源码分析
 [Vue源码学习](http://hcysun.me/2017/03/03/Vue%E6%BA%90%E7%A0%81%E5%AD%A6%E4%B9%A0/)
 
 ### vue三要素
@@ -564,14 +568,19 @@ vdom完全是用js去实现，和宿主浏览器没有任何联系
 [vue-router 实现分析](https://cnodejs.org/topic/58d680c903d476b42d34c72b)
 [vue-router源码分析-整体流程](https://github.com/DDFE/DDFE-blog/issues/9)
 
-## 源码分析思路过程
-首先文档，然后通过一个简单的例子开始，从入口文件一步步分析，抓住主线。
-vue组件通常都有一个install方法，用于将组件装在到vue对象上。
-
 ## vuex原理
 [Vuex框架原理与源码分析](https://tech.meituan.com/vuex-code-analysis.html)
+[Vuex 2.0 源码分析](https://github.com/DDFE/DDFE-blog/issues/8)
 管理页面数据，提供统一操作处理
 action-mutation-stateChange
 Vue组件接收交互行为，调用dispatch方法触发action相关处理，若页面状态需要改变，则调用commit方法提交mutation修改state，通过getters获取到state新值，重新渲染Vue Components，界面随之更新。
 ![Vuex框架原理与源码分析](vuex.png)
 install主要通过hook（钩子，mixin）的形式，或使用封装并替换Vue对象原型的_init方法，实现注入。
+
+## webpack
+[深入浅出 Webpack](http://webpack.wuhaolin.cn/)
+
+## vue-cli
+
+## electron-vue
+
