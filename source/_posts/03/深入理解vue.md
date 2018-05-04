@@ -89,8 +89,14 @@ initRender(vm)
 ```
 
 ### 数据响应系统
-Vue的数据响应系统包含三个部分：Observer、Dep、Watcher。
+模型通过Observer、Dep、Watcher、Directive等一系列对象的关联，最终和视图建立起关系。
+[Vue 源码解析：深入响应式原理](https://github.com/DDFE/DDFE-blog/issues/7)
+![vue数据响应系统](vue1.jpg)
+- 通过 Observer 对 data 做监听，并且提供了订阅某个数据项变化的能力。
+- 把 template 编译成一段 document fragment，然后解析其中的 Directive，得到每一个 Directive 所依赖的数据项和update方法。
+- 通过Watcher把上述两部分结合起来，即把Directive中的数据依赖通过Watcher订阅在对应数据的 Observer 的 Dep 上。当数据变化时，就会触发 Observer 的 Dep 上的 notify 方法通知对应的 Watcher 的 update，进而触发 Directive 的 update 方法来更新 DOM 视图，最后达到模型和视图关联起来。
 
+通过一个简单的例子来看一下
 ```
 var data = {
   name: 'chenjp',
@@ -248,6 +254,16 @@ vm._watcher = new Watcher(vm, updateComponent, noop)
 [vue-router 实现分析](https://cnodejs.org/topic/58d680c903d476b42d34c72b)
 [vue-router源码分析-整体流程](https://github.com/DDFE/DDFE-blog/issues/9)
 
+![vue-router逻辑流程](vue-router.png)
+
+通过vue的插件机制，在vue.use(VueRouter)时，调用了vueRouter组件中的install方法，install方法中通过vue的mixin，在beforeCreate时执行init方法，init方法中通过监听hashChange事件来监听路由变化。
+当监听到hashChange时，执行 history.transitionTo(...)，在这个过程中，会进行地址匹配，得到一个对应当前地址的 route，然后将其设置到对应的 vm._route 上。
+在beforeCreate中还采用与 Vue 本身数据相同的“数据劫持”方式，对 vm._route 的赋值会被 Vue 拦截到，并且触发 Vue 组件的更新渲染流程。
+```
+Vue.util.defineReactive(this, '_route', this._router.history.current)
+```
+视图更新进一步调用到router-view组件的 render() 方法。主要逻辑是从根组件中取出当前的路由对象（parent.$route），然后取得该路由下对应的组件，然后交由该组件进行渲染。
+
 ## vuex原理
 [Vuex框架原理与源码分析](https://tech.meituan.com/vuex-code-analysis.html)
 [Vuex 2.0 源码分析](https://github.com/DDFE/DDFE-blog/issues/8)
@@ -255,7 +271,6 @@ vm._watcher = new Watcher(vm, updateComponent, noop)
 action-mutation-stateChange
 Vue组件接收交互行为，调用dispatch方法触发action相关处理，若页面状态需要改变，则调用commit方法提交mutation修改state，通过getters获取到state新值，重新渲染Vue Components，界面随之更新。
 ![Vuex框架原理与源码分析](vuex.png)
-install主要通过hook（钩子，mixin）的形式，或使用封装并替换Vue对象原型的_init方法，实现注入。
 
 ## webpack
 [深入浅出 Webpack](http://webpack.wuhaolin.cn/)
