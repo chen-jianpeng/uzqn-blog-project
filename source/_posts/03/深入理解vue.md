@@ -272,6 +272,10 @@ action-mutation-stateChange
 Vue组件接收交互行为，调用dispatch方法触发action相关处理，若页面状态需要改变，则调用commit方法提交mutation修改state，通过getters获取到state新值，重新渲染Vue Components，界面随之更新。
 ![Vuex框架原理与源码分析](vuex.png)
 
+- install方法给Vue的实例注入一个 $store 的属性。
+- Vuex 的初始化的核心，其中，installModule 方法是把我们通过 options 传入的各种属性模块注册和安装；resetStoreVM 方法是初始化 store._vm，观测 state 和 getters 的变化；最后是应用传入的插件。
+- 严格模式做的事情很简单，监测 `store._vm.state` 的变化，看看 state 的变化是否通过执行 mutation 的回调函数改变，如果是外部直接修改 state，那么 store._committing 的值为 false，这样就抛出一条错误。
+
 ## webpack
 [深入浅出 Webpack](http://webpack.wuhaolin.cn/)
 
