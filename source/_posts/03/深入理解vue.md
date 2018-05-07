@@ -34,7 +34,7 @@ View了解Controller，Controller了解Model，而View能够直接访问Model。
 vue组件通常都有一个install方法，用于将组件装在到vue对象上。
 
 ## vue源码分析
-[Vue源码学习](http://hcysun.me/2017/03/03/Vue%E6%BA%90%E7%A0%81%E5%AD%A6%E4%B9%A0/)
+推荐文章 [Vue源码学习](http://hcysun.me/2017/03/03/Vue%E6%BA%90%E7%A0%81%E5%AD%A6%E4%B9%A0/)
 
 ### vue三要素
 - 响应式：监听数据变化。
@@ -90,7 +90,7 @@ initRender(vm)
 
 ### 数据响应系统
 模型通过Observer、Dep、Watcher、Directive等一系列对象的关联，最终和视图建立起关系。
-[Vue 源码解析：深入响应式原理](https://github.com/DDFE/DDFE-blog/issues/7)
+推荐文章[Vue 源码解析：深入响应式原理](https://github.com/DDFE/DDFE-blog/issues/7)
 ![vue数据响应系统](vue1.jpg)
 - 通过 Observer 对 data 做监听，并且提供了订阅某个数据项变化的能力。
 - 把 template 编译成一段 document fragment，然后解析其中的 Directive，得到每一个 Directive 所依赖的数据项和update方法。
@@ -192,9 +192,7 @@ vm_render 方法最终返回一个 vnode 对象，即虚拟DOM，然后作为 vm
 vdom很好的将dom做了一层映射关系
 vdom完全是用js去实现，和宿主浏览器没有任何联系
 这里就分享两篇写的非常好的文章吧
-[Vue 2.0 的 virtual-dom 实现简析](https://github.com/DDFE/DDFE-blog/issues/18)
-[深入 Vue2.x 的虚拟 DOM diff 原理](https://cloud.tencent.com/developer/article/1006029)
-[从 $mount 讲起，一起探究Vue的渲染机制](https://segmentfault.com/a/1190000009467029)
+推荐文章[Vue 2.0 的 virtual-dom 实现简析](https://github.com/DDFE/DDFE-blog/issues/18),[深入 Vue2.x 的虚拟 DOM diff 原理](https://cloud.tencent.com/developer/article/1006029),[从 $mount 讲起，一起探究Vue的渲染机制](https://segmentfault.com/a/1190000009467029)
 
 总结：
 在initRender(vue构造函数中的五个方法中最后一个)中如果有 vm.$options.el 还要调用 vm.$mount(vm.$options.el)，实际上是调用了src/core/instance/lifecycle.js中的mountComponent方法，mountComponent函数如下
@@ -251,8 +249,7 @@ vm._watcher = new Watcher(vm, updateComponent, noop)
 实例化一个watcher，在求值的过程中this.value = this.lazy ? undefined : this.get()，会调用this.get()方法，因此在实例化的过程当中Dep.target会被设为这个watcher，通过调用vm._render()方法生成新的Vnode并进行diff的过程中完成了模板当中变量依赖收集工作。即这个watcher被添加到了在模板当中所绑定变量的依赖当中。一旦model中的响应式的数据发生了变化，这些响应式的数据所维护的dep数组便会调用dep.notify()方法完成所有依赖遍历执行的工作，这里面就包括了视图的更新即updateComponent方法，它是在mountComponent中的定义的。
 
 ## vue-router原理
-[vue-router 实现分析](https://cnodejs.org/topic/58d680c903d476b42d34c72b)
-[vue-router源码分析-整体流程](https://github.com/DDFE/DDFE-blog/issues/9)
+推荐文章[vue-router 实现分析](https://cnodejs.org/topic/58d680c903d476b42d34c72b),[vue-router源码分析-整体流程](https://github.com/DDFE/DDFE-blog/issues/9)
 
 ![vue-router逻辑流程](vue-router.png)
 
@@ -265,8 +262,7 @@ Vue.util.defineReactive(this, '_route', this._router.history.current)
 视图更新进一步调用到router-view组件的 render() 方法。主要逻辑是从根组件中取出当前的路由对象（parent.$route），然后取得该路由下对应的组件，然后交由该组件进行渲染。
 
 ## vuex原理
-[Vuex框架原理与源码分析](https://tech.meituan.com/vuex-code-analysis.html)
-[Vuex 2.0 源码分析](https://github.com/DDFE/DDFE-blog/issues/8)
+推荐文章[Vuex框架原理与源码分析](https://tech.meituan.com/vuex-code-analysis.html)，[Vuex 2.0 源码分析](https://github.com/DDFE/DDFE-blog/issues/8)
 管理页面数据，提供统一操作处理
 action-mutation-stateChange
 Vue组件接收交互行为，调用dispatch方法触发action相关处理，若页面状态需要改变，则调用commit方法提交mutation修改state，通过getters获取到state新值，重新渲染Vue Components，界面随之更新。
@@ -277,7 +273,23 @@ Vue组件接收交互行为，调用dispatch方法触发action相关处理，若
 - 严格模式做的事情很简单，监测 `store._vm.state` 的变化，看看 state 的变化是否通过执行 mutation 的回调函数改变，如果是外部直接修改 state，那么 store._committing 的值为 false，这样就抛出一条错误。
 
 ## webpack
-[深入浅出 Webpack](http://webpack.wuhaolin.cn/)
+推荐文章[深入浅出 Webpack](http://webpack.wuhaolin.cn/)
+
+一些重点概念
+- Entry：入口，Webpack 执行构建的第一步将从 Entry 开始，可抽象成输入。
+- Module：模块，在 Webpack 里一切皆模块，一个模块对应着一个文件。Webpack 会从配置的 Entry 开始递归找出所有依赖的模块。
+- Chunk：代码块，一个 Chunk 由多个模块组合而成，用于代码合并与分割。
+- Loader：模块转换器，用于把模块原内容按照需求转换成新内容。
+- Plugin：扩展插件，在 Webpack 构建流程中的特定时机注入扩展逻辑来改变构建结果或做你想要的事情。
+- Output：输出结果，在 Webpack 经过一系列处理并得出最终想要的代码后输出结果。
+
+通常你可用如下经验去判断如何配置 Webpack：
+
+- 想让源文件加入到构建流程中去被 Webpack 控制，配置 entry。
+- 想自定义输出文件的位置和名称，配置 output。
+- 想自定义寻找依赖模块时的策略，配置 resolve。
+- 想自定义解析和转换文件的策略，配置 module，通常是配置 module.rules 里的 Loader。
+- 其它的大部分需求可能要通过 Plugin 去实现，配置 plugin。
 
 ## vue-cli
 
