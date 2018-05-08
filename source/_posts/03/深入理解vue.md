@@ -290,8 +290,3 @@ Vue组件接收交互行为，调用dispatch方法触发action相关处理，若
 - 想自定义寻找依赖模块时的策略，配置 resolve。
 - 想自定义解析和转换文件的策略，配置 module，通常是配置 module.rules 里的 Loader。
 - 其它的大部分需求可能要通过 Plugin 去实现，配置 plugin。
-
-## vue-cli
-
-## electron-vue
-
