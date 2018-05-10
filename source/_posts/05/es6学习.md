@@ -119,17 +119,339 @@ padStart()，padEnd()
 ## 正则表达式的扩展
 
 ## 数值的扩展
-二进制和八进制表示法
-Number.isFinite(), Number.isNaN()
-Number.parseInt(), Number.parseFloat()
-Number.isInteger()
-Number.EPSILON
-安全整数和 Number.isSafeInteger()
-Math 对象的扩展
-指数运算符
+### 二进制和八进制表示法
+从 ES5 开始，在严格模式之中，八进制就不再允许使用前缀0表示，ES6 进一步明确，要使用前缀0o表示。
+
+### Number.isFinite(), Number.isNaN()
+它们与传统的全局方法isFinite()和isNaN()的区别在于，传统方法先调用Number()将非数值的值转为数值，再进行判断，而这两个新方法只对数值有效，Number.isFinite()对于非数值一律返回false, Number.isNaN()只有对于NaN才返回true，非NaN一律返回false。
+
+### Number.parseInt(), Number.parseFloat()
+ES6 将全局方法parseInt()和parseFloat()，移植到Number对象上面，行为完全保持不变。
+这样做的目的，是逐步减少全局性方法，使得语言逐步模块化。
+
+### Number.isInteger()
+判断一个数值是否为整数
+
+### Number.EPSILON
+极小的常量Number.EPSILON。Number.EPSILON === Math.pow(2, -52)
+
+误差范围设为 2 的-50 次方（即Number.EPSILON * Math.pow(2, 2)），即如果两个浮点数的差小于这个值，我们就认为这两个浮点数相等。
+```
+function withinErrorMargin (left, right) {
+  return Math.abs(left - right) < Number.EPSILON * Math.pow(2, 2);
+}
+
+0.1 + 0.2 === 0.3 // false
+withinErrorMargin(0.1 + 0.2, 0.3) // true
+```
+
+### 安全整数和 Number.isSafeInteger()
+JavaScript 能够准确表示的整数范围在-2^53到2^53之间（不含两个端点），超过这个范围，无法精确表示这个值。
+Number.MAX_SAFE_INTEGER和Number.MIN_SAFE_INTEGER这两个常量，用来表示这个范围的上下限。
+```
+Number.MAX_SAFE_INTEGER === Math.pow(2, 53) - 1
+// true
+Number.MAX_SAFE_INTEGER === 9007199254740991
+// true
+
+Number.MIN_SAFE_INTEGER === -Number.MAX_SAFE_INTEGER
+// true
+Number.MIN_SAFE_INTEGER === -9007199254740991
+// true
+```
+
+不要只验证运算结果，而要同时验证参与运算的每个值。
+
+### Math 对象的扩展
+- Math.trunc 去除小数部分
+- Math.sign 正数+1，负数-1，零0，负零-0，其他值NaN。
+- Math.cbrt 立方根
+- Math.clz32 JavaScript的整数使用 32 位二进制形式表示，Math.clz32方法返回一个数的 32 位无符号整数形式有多少个前导 0。
+- Math.imul 返回两个数以 32 位带符号整数形式相乘的结果。
+- Math.fround 返回一个数的32位单精度浮点数形式
+- Math.hypot 返回所有参数的平方和的平方根。
+- Math.expm1 返回 ex - 1，即Math.exp(x) - 1。
+- Math.log1p 返回1 + x的自然对数，即Math.log(1 + x)。
+- Math.log10 返回以 10 为底的x的对数
+- Math.log2 返回以 2 为底的x的对数
+- ES6 新增了 6 个双曲函数方法
+
+### 指数运算符
+指数运算符（`**`）。 `2 ** 3 === 8`
 
 ## 函数的扩展
+### 函数参数的默认值
+- 定义了默认值的参数，应该是函数的尾参数。
+
+- 默认值的两种情况
+```
+// 写法一: 给结构赋默认值
+function m1({x = 0, y = 0} = {}) {
+  return [x, y];
+}
+
+// 写法二： 给函数参数赋默认值
+function m2({x, y} = { x: 0, y: 0 }) {
+  return [x, y];
+}
+```
+
+- 函数的length属性，将返回没有指定默认值的参数个数
+
+### rest 参数
+用于获取函数的多余参数，这样就不需要使用arguments对象了。
+rest 参数之后不能再有其他参数（即只能是最后一个参数），否则会报错。
+
+### 严格模式
+规定只要函数参数使用了默认值、解构赋值、或者扩展运算符，那么函数内部就不能显式设定为严格模式，否则会报错。
+
+### name 属性
+```
+var f = function () {};
+
+// ES5
+f.name // ""
+
+// ES6
+f.name // "f"
+
+const bar = function baz() {};
+
+// ES5
+bar.name // "baz"
+
+// ES6
+bar.name // "baz"
+```
+
+### 箭头函数
+```
+var sum = (num1, num2) => num1 + num2;
+// 等同于
+var sum = function(num1, num2) {
+  return num1 + num2;
+};
+```
+代码块部分多于一条语句时需要加大括号。
+直接返回一个对象时需要加小括号。
+箭头函数有几个使用注意点
+1. 函数体内的this对象，就是定义时所在的对象，而不是使用时所在的对象。
+2. 不可以当作构造函数，也就是说，不可以使用new命令，否则会抛出一个错误。
+3. 不可以使用arguments对象，该对象在函数体内不存在。如果要用，可以用 rest 参数代替。
+4. 不可以使用yield命令，因此箭头函数不能用作 Generator 函数。
+
+### 双冒号运算符
+函数绑定运算符是并排的两个冒号（::），双冒号左边是一个对象，右边是一个函数。该运算符会自动将左边的对象，作为上下文环境（即this对象），绑定到右边的函数上面。
+```
+foo::bar;
+// 等同于
+bar.bind(foo);
+
+var method = obj::obj.foo;
+// 等同于
+var method = ::obj.foo;
+```
+
+### 尾调用优化
+尾调用就是指某个函数的最后一步是调用另一个函数。
+ES6 的尾调用优化只在严格模式下开启，正常模式是无效的。
+```
+function f() {
+  let m = 1;
+  let n = 2;
+  return g(m + n);
+}
+f();
+
+// 等同于
+function f() {
+  return g(3);
+}
+f();
+
+// 等同于
+g(3);
+```
+上面代码中，如果函数g不是尾调用，函数f就需要保存内部变量m和n的值、g的调用位置等信息。但由于调用g之后，函数f就结束了，所以执行到最后一步，完全可以删除f(x)的调用帧，只保留g(3)的调用帧。
+这就叫做“尾调用优化”（Tail call optimization），即只保留内层函数的调用帧。如果所有函数都是尾调用，那么完全可以做到每次执行时，调用帧只有一项，这将大大节省内存。这就是“尾调用优化”的意义。
+
+尾递归
+函数调用自身，称为递归。如果尾调用自身，就称为尾递归。
+递归非常耗费内存，因为需要同时保存成千上百个调用帧，很容易发生“栈溢出”错误（stack overflow）。但对于尾递归来说，由于只存在一个调用帧，所以永远不会发生“栈溢出”错误。
+```
+function factorial(n) {
+  if (n === 1) return 1;
+  return n * factorial(n - 1);
+}
+
+factorial(5) // 120
+```
+上面代码是一个阶乘函数，计算n的阶乘，最多需要保存n个调用记录，复杂度 O(n) 。
+如果改写成尾递归，只保留一个调用记录，复杂度 O(1) 。
+```
+function factorial(n, total) {
+  if (n === 1) return total;
+  return factorial(n - 1, n * total);
+}
+
+factorial(5, 1) // 120
+```
+完美版
+```
+function factorial(n, total = 1) {
+  if (n === 1) return total;
+  return factorial(n - 1, n * total);
+}
+
+factorial(5) // 120
+```
+
+不支持该功能的环境中如何做？尾递归之所以需要优化，原因是调用栈太多，造成溢出，那么只要减少调用栈，就不会溢出。怎么做可以减少调用栈呢？就是采用“循环”换掉“递归”。
+
+### 函数参数的尾逗号
+允许定义和调用时，尾部直接有一个逗号。
 
 ## 数组的扩展
+### 扩展运算符
+...是rest 参数的逆运算，将一个数组转为用逗号分隔的参数序列
+```
+Math.max(...[14, 3, 77])
+
+// ES6 的写法
+let arr1 = [0, 1, 2];
+let arr2 = [3, 4, 5];
+arr1.push(...arr2);
+```
+
+应用场景：
+1. 复制数组
+```
+const a1 = [1, 2];
+// 写法一
+const a2 = [...a1];
+// 写法二
+const [...a2] = a1;
+```
+2. 合并数组
+```
+// 产生新的数组
+[...arr1, ...arr2, ...arr3]
+// arr1就是合并后的结果
+arr1.push(...arr2);
+```
+3. 与解构赋值结合
+```
+const [first, ...rest] = [1, 2, 3, 4, 5];
+first // 1
+rest  // [2, 3, 4, 5]
+
+const [first, ...rest] = [];
+first // undefined
+rest  // []
+
+const [first, ...rest] = ["foo"];
+first  // "foo"
+rest   // []
+```
+4. 字符串
+```
+[...'hello']
+// [ "h", "e", "l", "l", "o" ]
+```
+5. 实现了 Iterator 接口的对象
+```
+let nodeList = document.querySelectorAll('div');
+let array = [...nodeList];
+```
+6. Map 和 Set 结构，Generator 函数
+
+### Array.from()
+Array.from方法用于将两类对象转为真正的数组：类似数组的对象（array-like object）和可遍历（iterable）的对象（包括 ES6 新增的数据结构 Set 和 Map）。
+任何有length属性的对象，都可以通过Array.from方法转为数组，而此时扩展运算符就无法转换。
+### Array.of()
+Array.of方法用于将一组值，转换为数组。
+```
+Array.of(3, 11, 8) // [3,11,8]
+Array.of(3) // [3]
+Array.of(3).length // 1
+
+Array() // []
+Array(3) // [, , ,]
+Array(3, 11, 8) // [3, 11, 8]
+```
+### 数组实例的 copyWithin()
+数组实例的copyWithin方法，在当前数组内部，将指定位置的成员复制到其他位置（会覆盖原有成员），然后返回当前数组。也就是说，使用这个方法，会修改当前数组。
+它接受三个参数:
+target（必需）：从该位置开始替换数据。如果为负值，表示倒数。
+start（可选）：从该位置开始读取数据，默认为 0。如果为负值，表示倒数。
+end（可选）：到该位置前停止读取数据，默认等于数组长度。如果为负值，表示倒数。
+```
+// 将3号位复制到0号位
+[1, 2, 3, 4, 5].copyWithin(0, 3, 4)
+// [4, 2, 3, 4, 5]
+```
+### 数组实例的 find() 和 findIndex()
+indexOf方法无法识别数组的NaN成员
+```
+[1, 5, 10, 15].find(function(value, index, arr) {
+  return value > 9;
+}) // 10
+
+[1, 5, 10, 15].findIndex(function(value, index, arr) {
+  return value > 9;
+}) // 2
+```
+### 数组实例的 fill()
+fill方法使用给定值，填充一个数组。
+```
+['a', 'b', 'c'].fill(7)
+// [7, 7, 7]
+
+['a', 'b', 'c'].fill(7, 1, 2)
+// ['a', 7, 'c']
+```
+### 数组实例的 entries()，keys() 和 values()
+keys()是对键名的遍历、values()是对键值的遍历，entries()是对键值对的遍历
+```
+for (let index of ['a', 'b'].keys()) {
+  console.log(index);
+}
+// 0
+// 1
+
+for (let elem of ['a', 'b'].values()) {
+  console.log(elem);
+}
+// 'a'
+// 'b'
+
+for (let [index, elem] of ['a', 'b'].entries()) {
+  console.log(index, elem);
+}
+// 0 "a"
+// 1 "b"
+
+let letter = ['a', 'b', 'c'];
+let entries = letter.entries();
+console.log(entries.next().value); // [0, 'a']
+console.log(entries.next().value); // [1, 'b']
+console.log(entries.next().value); // [2, 'c']
+```
+### 数组实例的 includes()
+方法返回一个布尔值，表示某个数组是否包含给定的值，与字符串的includes方法类似。
+indexOf不够语义化，不能判断NaN
+### 数组的空位
+```
+Array(3) // [, , ,]
+```
+空位不是undefined，一个位置的值等于undefined，依然是有值的。空位是没有任何值。
+
+ES5 对空位的处理，已经很不一致了，大多数情况下会忽略空位（所以避免数组的空位）:
+forEach(), filter(), reduce(), every() 和some()都会跳过空位。
+map()会跳过空位，但会保留这个值
+join()和toString()会将空位视为undefined，而undefined和null会被处理成空字符串。
+
+ES6 则是明确将空位转为undefined。
+
 
 ## 对象的扩展
