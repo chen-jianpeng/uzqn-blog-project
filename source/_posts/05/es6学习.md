@@ -455,3 +455,253 @@ ES6 则是明确将空位转为undefined。
 
 
 ## 对象的扩展
+### 属性的简洁表示法
+对象的普通属性和方法属性都可以简写
+```
+let birth = '2000/01/01';
+
+const Person = {
+
+  name: '张三',
+
+  //等同于birth: birth
+  birth,
+
+  // 等同于hello: function ()...
+  hello() { console.log('我的名字是', this.name); }
+
+};
+
+// 对象的方法使用了取值函数（getter）和存值函数（setter）对应的简写
+const obj = {
+  get foo() {},
+  set foo(x) {}
+};
+```
+
+### 属性名表达式
+ES6 允许字面量定义对象时，把表达式放在方括号内作为对象的属性名。
+```
+let propKey = 'foo';
+
+let obj = {
+  [propKey]: true,
+  ['a' + 'bc']: 123,
+  ['h' + 'ello']() {
+    return 'hi';
+  }
+};
+```
+
+### 方法的 name 属性
+方法的name属性返回函数名（即方法名）。
+如果设置了对象的getter、setter，返回值是方法名前加上get和set；
+bind方法创造的函数，name属性返回bound加上原函数的名字；
+Function构造函数创造的函数，name属性返回anonymous；
+如果对象的方法是一个 Symbol 值，那么name属性返回的是这个 Symbol 值的描述。
+
+### Object.is()
+Object.is就是部署这个算法的新方法。它用来比较两个值是否严格相等，与严格比较运算符（===）的行为基本一致。
+不同之处只有两个：一是+0不等于-0，二是NaN等于自身。
+```
++0 === -0 //true
+NaN === NaN // false
+
+Object.is(+0, -0) // false
+Object.is(NaN, NaN) // true
+```
+### Object.assign()
+Object.assign方法用于对象的合并，将源对象（source）的所有可枚举属性，复制到目标对象（target）。
+```
+const target = { a: 1 };
+
+const source1 = { b: 2 };
+const source2 = { c: 3 };
+
+Object.assign(target, source1, source2);
+target // {a:1, b:2, c:3}
+```
+注意：浅拷贝；同名属性的替换；数组按对象处理；如果要复制的值是一个取值函数，那么将求值后再复制；
+### 属性的可枚举性
+有四个操作会忽略enumerable为false的属性：
+for...in循环：只遍历对象自身的和继承的可枚举的属性。
+Object.keys()：返回对象自身的所有可枚举的属性的键名。
+JSON.stringify()：只串行化对象自身的可枚举的属性。
+Object.assign()： 忽略enumerable为false的属性，只拷贝对象自身的可枚举的属性。
+
+对象原型的toString方法，以及数组的length属性，就通过“可枚举性”，从而避免被for...in遍历到。
+
+### 对象遍历
+1. for...in：循环遍历对象自身的和继承的可枚举属性（不含 Symbol 属性）。
+2. Object.keys(obj)：返回一个数组，包括对象自身的（不含继承的）所有可枚举属性（不含 Symbol 属性）的键名。
+3. Object.getOwnPropertyNames：返回一个数组，包含对象自身的所有属性（不含 Symbol 属性，但是包括不可枚举属性）的键名。
+4. Object.getOwnPropertySymbols：返回一个数组，包含对象自身的所有 Symbol 属性的键名。
+5. Reflect.ownKeys(obj)：返回一个数组，包含对象自身的所有键名，不管键名是 Symbol 或字符串，也不管是否可枚举。
+以上的 5 种方法遍历对象的键名，都遵守同样的属性遍历的次序规则：
+首先遍历所有数值键，按照数值升序排列。
+其次遍历所有字符串键，按照加入时间升序排列。
+最后遍历所有 Symbol 键，按照加入时间升序排列。
+
+### Object.getOwnPropertyDescriptors()
+返回指定对象所有自身属性（非继承属性）的描述对象。
+
+### __proto__属性，Object.setPrototypeOf()，Object.getPrototypeOf()
+__proto__属性（前后各两个下划线），用来读取或设置当前对象的prototype对象。
+无论从语义的角度，还是从兼容性的角度，都不要使用这个__proto__属性，而是使用Object.setPrototypeOf()（写操作）、Object.getPrototypeOf()（读操作）、Object.create()（生成操作）代替。
+
+### super 关键字
+指向当前对象的原型对象。
+super关键字表示原型对象时，只能用在对象的方法之中，用在其他地方都会报错。只有对象方法的简写法可以让 JavaScript 引擎确认，定义的是对象的方法。
+
+### Object.keys()，Object.values()，Object.entries()
+方法返回一个数组，成员是参数对象自身的（不含继承的）所有可遍历（enumerable）属性的数组。
+```
+let {keys, values, entries} = Object;
+let obj = { a: 1, b: 2, c: 3 };
+
+for (let key of keys(obj)) {
+  console.log(key); // 'a', 'b', 'c'
+}
+
+for (let value of values(obj)) {
+  console.log(value); // 1, 2, 3
+}
+
+for (let [key, value] of entries(obj)) {
+  console.log([key, value]); // ['a', 1], ['b', 2], ['c', 3]
+}
+```
+
+### 对象的扩展运算符
+对象的解构赋值用于从一个对象取值，相当于将目标对象自身(不包含继承的)的所有可遍历的（enumerable）、但尚未被读取的属性，分配到指定的对象上面。
+
+## Symbol
+### 概述
+一种新的原始数据类型Symbol，表示独一无二的值。
+### 作为属性名的 Symbol
+能防止某一个键被不小心改写或覆盖。
+### 实例：消除魔术字符串
+魔术字符串指的是，在代码之中多次出现、与代码形成强耦合的某一个具体的字符串或者数值。
+```
+const shapeType = {
+  triangle: Symbol()
+};
+
+function getArea(shape, options) {
+  let area = 0;
+  switch (shape) {
+    case shapeType.triangle:
+      area = .5 * options.width * options.height;
+      break;
+  }
+  return area;
+}
+
+getArea(shapeType.triangle, { width: 100, height: 100 });
+```
+### 属性名的遍历
+Object.getOwnPropertySymbols方法返回一个数组，成员是当前对象的所有用作属性名的 Symbol 值。
+Reflect.ownKeys方法可以返回所有类型的键名，包括常规键名和 Symbol 键名。
+由于以 Symbol 值作为名称的属性，不会被常规方法遍历得到。我们可以利用这个特性，为对象定义一些非私有的、但又希望只用于内部的方法。
+
+### Symbol.for()，Symbol.keyFor()
+Symbol.for方法使用同一个 Symbol 值，生成同一个值。
+Symbol.keyFor方法返回一个已登记的 Symbol 类型值的key。
+
+### 实例：模块的 Singleton 模式
+```
+// mod.js
+const FOO_KEY = Symbol.for('foo');
+
+function A() {
+  this.foo = 'hello';
+}
+
+if (!global[FOO_KEY]) {
+  global[FOO_KEY] = new A();
+}
+
+module.exports = global[FOO_KEY];
+```
+上面代码中，可以保证global[FOO_KEY]不会被无意间覆盖，但还是可以被改写。
+如果需要修改，可以通过Symbol.for来修改。
+
+### 内置的 Symbol 值
+- Symbol.hasInstance
+对象的Symbol.hasInstance属性，指向一个内部方法。当其他对象使用instanceof运算符，判断是否为该对象的实例时，会调用这个方法。比如，foo instanceof Foo在语言内部，实际调用的是`Foo[Symbol.hasInstance](foo)`。
+```
+class MyClass {
+  [Symbol.hasInstance](foo) {
+    return foo instanceof Array;
+  }
+}
+
+[1, 2, 3] instanceof new MyClass() // true
+```
+- Symbol.isConcatSpreadable
+对象的Symbol.isConcatSpreadable属性等于一个布尔值，表示该对象用于Array.prototype.concat()时，是否可以展开。
+```
+let arr1 = ['c', 'd'];
+['a', 'b'].concat(arr1, 'e') // ['a', 'b', 'c', 'd', 'e']
+arr1[Symbol.isConcatSpreadable] // undefined
+
+let arr2 = ['c', 'd'];
+arr2[Symbol.isConcatSpreadable] = false;
+['a', 'b'].concat(arr2, 'e') // ['a', 'b', ['c','d'], 'e']
+```
+- Symbol.species
+Symbol.species的作用在于，实例对象在运行过程中，需要再次调用自身的构造函数时，会调用该属性指定的构造函数。它主要的用途是，有些类库是在基类的基础上修改的，那么子类使用继承的方法时，作者可能希望返回基类的实例，而不是子类的实例。
+
+- Symbol.match,Symbol.replace,Symbol.search,Symbol.split
+对象的属性，指向一个函数。当执行str.match(myObject)/str.replace(myObject)/str.search(myObject)/str.split(myObject)时，如果该属性存在，会调用它，返回该方法的返回值。
+
+- Symbol.iterator
+对象的Symbol.iterator属性，指向该对象的默认遍历器方法。
+
+- Symbol.toPrimitive
+对象的Symbol.toPrimitive属性，指向一个方法。该对象被转为原始类型的值时，会调用这个方法，返回该对象对应的原始类型值。
+
+- Symbol.toStringTag
+对象的Symbol.toStringTag属性，指向一个方法。在该对象上面调用Object.prototype.toString方法时，如果这个属性存在，它的返回值会出现在toString方法返回的字符串之中，表示对象的类型。
+
+- Symbol.unscopables
+对象的Symbol.unscopables属性，指向一个对象。该对象指定了使用with关键字时，哪些属性会被with环境排除。
+
+## Set 和 Map 数据结构
+### Set
+它类似于数组，但是成员的值都是唯一的，没有重复的值。
+Set 函数可以接受一个数组（或者具有 iterable 接口的其他数据结构）作为参数，用来初始化。
+Set 内部判断两个值是否不同，使用的算法叫做“Same-value-zero equality”，它类似于精确相等运算符（===），主要的区别是NaN等于自身，而精确相等运算符认为NaN不等于自身。
+四种操作方法：
+- add(value)：添加某个值，返回 Set 结构本身。
+- delete(value)：删除某个值，返回一个布尔值，表示删除是否成功。
+- has(value)：返回一个布尔值，表示该值是否为Set的成员。
+- clear()：清除所有成员，没有返回值。
+四种遍历方法：（按照插入顺序遍历）
+- keys()：返回键名的遍历器
+- values()：返回键值的遍历器
+- entries()：返回键值对的遍历器
+- forEach()：使用回调函数遍历每个成员
+### WeakSet
+WeakSet 的成员只能是对象，而不能是其他类型的值。
+不存在size，不能遍历。
+WeakSet 中的对象都是弱引用，即垃圾回收机制不考虑 WeakSet 对该对象的引用，也就是说，如果其他对象都不再引用该对象，那么垃圾回收机制会自动回收该对象所占用的内存，不考虑该对象还存在于 WeakSet 之中。
+### Map
+它类似于对象，也是键值对的集合，但是“键”的范围不限于字符串，各种类型的值（包括对象）都可以当作键。也就是说，Object 结构提供了“字符串—值”的对应，Map 结构提供了“值—值”的对应，是一种更完善的 Hash 结构实现。如果你需要“键值对”的数据结构，Map 比 Object 更合适。
+
+size,set(),keys(),has(),delete(),clear()
+keys()，values()，entries()，forEach()
+
+map与array,object,json之间的相互转换
+### WeakMap
+WeakMap只接受对象作为键名（null除外），不接受其他类型的值作为键名。
+WeakMap的键名所指向的对象，不计入垃圾回收机制。
+get()、set()、has()、delete()
+
+## Proxy
+### 概述
+### Proxy 实例的方法
+### Proxy.revocable()
+### this 问题
+### 实例：Web 服务的客户端
+
