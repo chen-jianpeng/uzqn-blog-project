@@ -699,9 +699,175 @@ WeakMap的键名所指向的对象，不计入垃圾回收机制。
 get()、set()、has()、delete()
 
 ## Proxy
+代理器。在目标对象之前架设一层“拦截”，外界对该对象的访问，都必须先通过这层拦截，因此提供了一种机制，可以对外界的访问进行过滤和改写。
 ### 概述
+```
+var obj = new Proxy({}, {
+  get: function (target, key, receiver) {
+    console.log(`getting ${key}!`);
+    return Reflect.get(target, key, receiver);
+  },
+  set: function (target, key, value, receiver) {
+    console.log(`setting ${key}!`);
+    return Reflect.set(target, key, value, receiver);
+  }
+});
+```
 ### Proxy 实例的方法
+- get(target, propKey, receiver)：拦截对象属性的读取，比如proxy.foo和proxy['foo']。
+- set(target, propKey, value, receiver)：拦截对象属性的设置，比如proxy.foo = v或proxy['foo'] = v，返回一个布尔值。
+- has(target, propKey)：拦截propKey in proxy的操作，返回一个布尔值。
+- deleteProperty(target, propKey)：拦截delete proxy[propKey]的操作，返回一个布尔值。
+- ownKeys(target)：拦截Object.getOwnPropertyNames(proxy)、Object.getOwnPropertySymbols(proxy)、Object.keys(proxy)、for...in循环，返回一个数组。该方法返回目标对象所有自身的属性的属性名，而Object.keys()的返回结果仅包括目标对象自身的可遍历属性。
+- getOwnPropertyDescriptor(target, propKey)：拦截Object.getOwnPropertyDescriptor(proxy, propKey)，返回属性的描述对象。
+defineProperty(target, propKey, propDesc)：拦截Object.defineProperty(proxy, propKey, propDesc）、Object.defineProperties(proxy, propDescs)，返回一个布尔值。
+preventExtensions(target)：拦截Object.preventExtensions(proxy)，返回一个布尔值。
+getPrototypeOf(target)：拦截Object.getPrototypeOf(proxy)，返回一个对象。
+isExtensible(target)：拦截Object.isExtensible(proxy)，返回一个布尔值。
+setPrototypeOf(target, proto)：拦截Object.setPrototypeOf(proxy, proto)，返回一个布尔值。如果目标对象是函数，那么还有两种额外操作可以拦截。
+apply(target, object, args)：拦截 Proxy 实例作为函数调用的操作，比如proxy(...args)、proxy.call(object, ...args)、proxy.apply(...)。
+construct(target, args)：拦截 Proxy 实例作为构造函数调用的操作，比如new proxy(...args)。
 ### Proxy.revocable()
+取消Proxy实例。
+```
+let target = {};
+let handler = {};
+
+let {proxy, revoke} = Proxy.revocable(target, handler);
+
+proxy.foo = 123;
+proxy.foo // 123
+
+revoke();
+proxy.foo // TypeError: Revoked
+```
 ### this 问题
+在 Proxy 代理的情况下，目标对象内部的this关键字会指向 Proxy 代理。
 ### 实例：Web 服务的客户端
 
+## Reflect
+### 概述
+- 将Object对象的一些明显属于语言内部的方法（比如Object.defineProperty），放到Reflect对象上。
+- 修改某些Object方法的返回结果，让其变得更合理。
+- 让Object操作都变成函数行为。
+- 让Proxy对象可以方便地调用对应的Reflect方法，完成默认行为，作为修改行为的基础。
+
+```
+// 老写法
+Function.prototype.apply.call(Math.floor, undefined, [1.75]) // 1
+
+// 新写法
+Reflect.apply(Math.floor, undefined, [1.75]) // 1
+```
+
+### 静态方法
+Reflect.apply(target, thisArg, args)
+Reflect.construct(target, args)
+Reflect.get(target, name, receiver)
+Reflect.set(target, name, value, receiver)
+Reflect.defineProperty(target, name, desc)
+Reflect.deleteProperty(target, name)
+Reflect.has(target, name)
+Reflect.ownKeys(target)
+Reflect.isExtensible(target)
+Reflect.preventExtensions(target)
+Reflect.getOwnPropertyDescriptor(target, name)
+Reflect.getPrototypeOf(target)
+Reflect.setPrototypeOf(target, prototype)
+### 实例：使用 Proxy 实现观察者模式
+```
+const person = observable({
+  name: '张三',
+  age: 20
+});
+
+function print() {
+  console.log(`${person.name}, ${person.age}`)
+}
+
+observe(print);
+person.name = '李四';
+// 输出
+// 李四, 20
+
+const queuedObservers = new Set();
+
+const observe = fn => queuedObservers.add(fn);
+const observable = obj => new Proxy(obj, {set});
+
+function set(target, key, value, receiver) {
+  const result = Reflect.set(target, key, value, receiver);
+  queuedObservers.forEach(observer => observer());
+  return result;
+}
+```
+
+## Promise 对象
+### Promise 的含义
+Promise 是异步编程的一种解决方案，比传统的解决方案“回调函数和事件”更合理和更强大。
+所谓Promise，简单说就是一个容器，里面保存着某个未来才会结束的事件（通常是一个异步操作）的结果。
+Promise 内部的错误不会影响到 Promise 外部的代码，通俗的说法就是“Promise 会吃掉错误”。
+### 基本用法
+```
+const getJSON = function(url) {
+  const promise = new Promise(function(resolve, reject){
+    const handler = function() {
+      if (this.readyState !== 4) {
+        return;
+      }
+      if (this.status === 200) {
+        resolve(this.response);
+      } else {
+        reject(new Error(this.statusText));
+      }
+    };
+    const client = new XMLHttpRequest();
+    client.open("GET", url);
+    client.onreadystatechange = handler;
+    client.responseType = "json";
+    client.setRequestHeader("Accept", "application/json");
+    client.send();
+
+  });
+
+  return promise;
+};
+
+getJSON("/posts.json").then(function(json) {
+  console.log('Contents: ' + json);
+}, function(error) {
+  console.error('出错了', error);
+});
+```
+### then()和catch()
+```
+// bad
+promise
+  .then(function(data) {
+    // success
+  }, function(err) {
+    // error
+  });
+
+// good
+promise
+  .then(function(data) { //cb
+    // success
+  })
+  .catch(function(err) {
+    // error
+  });
+```
+### Promise.prototype.finally()
+finally方法用于指定不管 Promise 对象最后状态如何，都会执行的操作。
+### Promise.all()
+将多个 Promise 实例，包装成一个新的 Promise 实例。
+只要p1、p2、p3之中全部fulfilled，p的状态fulfilled；之中有一个rejected，p的状态就rejected。
+如果作为参数的 Promise 实例，自己定义了catch方法，那么它一旦被rejected，并不会触发Promise.all()的catch方法。
+### Promise.race()
+将多个 Promise 实例，包装成一个新的 Promise 实例。
+只要p1、p2、p3之中有一个实例率先改变状态，p的状态就跟着改变。
+### Promise.resolve()
+### Promise.reject()
+### 应用
+### Promise.try()
