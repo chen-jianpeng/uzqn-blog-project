@@ -33,6 +33,9 @@ View了解Controller，Controller了解Model，而View能够直接访问Model。
 首先文档，然后通过一个简单的例子开始，从入口文件一步步分析，抓住主线。
 vue组件通常都有一个install方法，用于将组件装在到vue对象上。
 
+## vue声明周期
+[vue 生命周期深入](https://juejin.im/entry/5aee8fbb518825671952308c)
+
 ## vue源码分析
 推荐文章 [Vue源码学习](http://hcysun.me/2017/03/03/Vue%E6%BA%90%E7%A0%81%E5%AD%A6%E4%B9%A0/)
 
