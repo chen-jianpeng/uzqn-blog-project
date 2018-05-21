@@ -803,8 +803,11 @@ function set(target, key, value, receiver) {
 ```
 
 ## Promise 对象
+推荐阅读![透彻掌握Promise的使用，读这篇就够了](http://caibaojian.com/toutiao/7312)
 ### Promise 的含义
 Promise 是异步编程的一种解决方案，比传统的解决方案“回调函数和事件”更合理和更强大。
+回调地狱。
+数据请求与数据处理明确的区分开来。
 所谓Promise，简单说就是一个容器，里面保存着某个未来才会结束的事件（通常是一个异步操作）的结果。
 Promise 内部的错误不会影响到 Promise 外部的代码，通俗的说法就是“Promise 会吃掉错误”。
 ### 基本用法
