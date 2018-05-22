@@ -17,3 +17,4 @@ header-img: "head.jpg"
 
 ## 跨域问题
 [关于跨域，你想知道的全在这里](https://zhuanlan.zhihu.com/p/25778815)
+相关例子我也敲了一份代码：https://github.com/123sky/crossDomain
