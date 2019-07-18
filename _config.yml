@@ -6,7 +6,7 @@
 title: UZ青年
 subtitle: 分享、心得、总结、记录
 description: 陈建朋在 Github 上的个人博客
-author: chenjp
+author: 陈建朋
 language:
 timezone:
 
@@ -32,9 +32,6 @@ permalink_defaults:
 weibo_username: 3048860577
 zhihu_username: ke-jing-ming-68
 github_username: 123sky
-twitter_username:
-facebook_username:  
-linkedin_username:  
 
 # Build settings
 anchorjs: false                        # if you want to customize anchor. check out line:181 of `post.html`
@@ -50,7 +47,7 @@ ga_track_id:             # Format: UA-xxxxxx-xx
 ga_domain:
 
 # Sidebar settings
-sidebar-about-description: 远传科技前端工程师 # 个人描述
+sidebar-about-description: 高级前端开发工程师 # 个人描述
 sidebar-avatar: img/avatar.jpg    # use absolute URL
 
 
